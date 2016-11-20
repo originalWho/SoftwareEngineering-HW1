@@ -48,18 +48,18 @@ public class VisitorController implements VisitorControllerI {
 
     public void rentBook(Visitor visitor, Book book) throws BookCannotBeBorrowedException {
         if (visitor == null || book == null) {
-            throw new BookCannotBeBorrowedException("Invalid input");
+            throw new BookCannotBeBorrowedException("Invalid source.");
         }
         if (!BookController.getInstance().getBooks().contains(book)) {
-            throw new BookCannotBeBorrowedException("There is no such a book");
+            throw new BookCannotBeBorrowedException("There is no such a book.");
         }
         if (!visitors.contains(visitor)) {
-            throw new BookCannotBeBorrowedException("There is no such a visitor");
+            throw new BookCannotBeBorrowedException("There is no such a visitor.");
         }
         if (!visitor.canBorrow()) {
             throw new BookCannotBeBorrowedException(
                     "Visitor " + visitor.getName()
-                            + " has exceeded the allowed number of borrowed books"
+                            + " has exceeded the allowed number of borrowed books."
             );
         }
         if (book.isBorrowed() && book.getBorrowedBy() != visitor) {
@@ -74,13 +74,13 @@ public class VisitorController implements VisitorControllerI {
 
     public void returnBook(Visitor visitor, Book book) throws BookCannotBeReturnedException {
         if (visitor == null || book == null) {
-            throw new BookCannotBeReturnedException("Invalid input");
+            throw new BookCannotBeReturnedException("Invalid source.");
         }
         if (!BookController.getInstance().getBooks().contains(book)) {
-            throw new BookCannotBeReturnedException("There is no such a book");
+            throw new BookCannotBeReturnedException("There is no such a book.");
         }
         if (!visitors.contains(visitor)) {
-            throw new BookCannotBeReturnedException("There is no such a visitor");
+            throw new BookCannotBeReturnedException("There is no such a visitor.");
         }
         /* Depends on where the function is called
         if (!book.isBorrowed()) {

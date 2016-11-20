@@ -4,15 +4,16 @@ import davletshin.artur.controller.BookController;
 import davletshin.artur.controller.VisitorController;
 import davletshin.artur.exception.BookCannotBeBorrowedException;
 import davletshin.artur.exception.BookCannotBeReturnedException;
+import davletshin.artur.exception.InsupportableSourceException;
 import davletshin.artur.model.Book;
 import davletshin.artur.model.Visitor;
+import davletshin.artur.source.BookSource;
+import davletshin.artur.source.BookSourceI;
 
 import java.util.*;
 
 public class Main {
-
     public static void main(String[] args) {
-	// write your code here
         preload();
 
         help();
@@ -29,15 +30,20 @@ public class Main {
                 case "-help":
                     help();
                     break;
-                case "-printbooks":
+                case "-source":
+                    String source = in.nextLine();
+                    result = chooseBookSource(source);
+                    System.out.println(result);
+                    break;
+                case "-books":
                     boolean showOwners = in.next().equals("y");
                     printBooks(showOwners);
                     break;
-                case "-printvisitors":
+                case "-visitors":
                     boolean showBooks = in.next().equals("y");
                     printVisitors(showBooks);
                     break;
-                case "-printoverdue":
+                case "-overdue":
                     printVisitorsWithOverdueBooks();
                     break;
                 case "-rent":
@@ -58,16 +64,32 @@ public class Main {
                     done = true;
                     break;
                 default:
-                    System.out.println("Invalid input. Enter -help to print list of valid commands.");
+                    System.out.println("Invalid source. Enter -help to print list of valid commands.");
                     break;
             }
         }
     }
 
+    private static String chooseBookSource(String sourcePath) {
+        if (sourcePath == null || sourcePath.isEmpty()) {
+            BookController.getInstance().setSource(BookSource.getInstance());
+            return "List of preloaded books was set as the book source.";
+        }
+        sourcePath = sourcePath.trim();
+        BookSourceI source = BookSource.getInstance();
+        try {
+            source.parse(sourcePath);
+        } catch (InsupportableSourceException e) {
+            return e.getMessage();
+        }
+        BookController.getInstance().setSource(BookSource.getInstance());
+        return sourcePath + " is set as the book source.";
+    }
+
     private static void printBooks(boolean showOwner) {
         List<Book> books = BookController.getInstance().getBooks();
-        if (books.isEmpty()) {
-            System.out.println("There are no books");
+        if (books == null || books.isEmpty()) {
+            System.out.println("There are no books.");
             return;
         }
         int index = 0;
@@ -82,8 +104,8 @@ public class Main {
 
     private static void printVisitors(boolean showBooks) {
         List<Visitor> visitors = VisitorController.getInstance().getVisitors();
-        if (visitors.isEmpty()) {
-            System.out.println("There are no visitors");
+        if (visitors == null || visitors.isEmpty()) {
+            System.out.println("There are no visitors.");
             return;
         }
         int index = 0;
@@ -103,7 +125,7 @@ public class Main {
     private static void printVisitorsWithOverdueBooks() {
         Map<Visitor, List<Book>> visitors = VisitorController.getInstance().getVisitorsWithOverdueBooks();
         if (visitors.isEmpty()) {
-            System.out.println("There are no visitors with overdue books");
+            System.out.println("There are no visitors with overdue books.");
             return;
         }
         for (Visitor visitor : visitors.keySet()) {
@@ -165,13 +187,10 @@ public class Main {
     private static void preload() {
         BookController bookController = BookController.getInstance();
         VisitorController visitorController = VisitorController.getInstance();
-        for (int i = 0; i < 10; i++) {
-            Book book = new Book(i*i + "title", i + "author");
-            bookController.getBooks().add(book);
-        }
+        chooseBookSource(null);
 
         for (int i = 0; i < 5; i++) {
-            Visitor visitor = new Visitor("Name" + (i+5));
+            Visitor visitor = new Visitor("Visitor " + (i + 1));
             visitorController.getVisitors().add(visitor);
         }
 
@@ -181,18 +200,22 @@ public class Main {
         calendar.add(Calendar.MONTH, -2);
 
         rentBook(2, 4);
+        rentBook(2, 5);
+        rentBook(2, 8);
         rentBook(3, 7);
+        rentBook(5, 1);
         bookController.getBooks().get(3).setDueTo(calendar.getTime());
         bookController.getBooks().get(6).setDueTo(calendar.getTime());
     }
 
     private static void help() {
-        System.out.println("-help\tPrint valid commands.");
-        System.out.println("-printbooks [y/n]\tPrint list of books in the library. Enter 'y' to show current book owners, else 'n'.");
-        System.out.println("-printvisitors [y/n]\tPrint list of library visitors. Enter 'y' to show books borrowed by a visitor, else 'n'.");
-        System.out.println("-printoverdue\tPrint list of visitors with overdue books");
-        System.out.println("-rent [visitor index] [book index]\tRent a book to a visitor.");
+        System.out.println("-help\t\t\t\t\t\t\t\t\tPrint valid commands.");
+        System.out.println("-source [path]\t\t\t\t\t\t\tChoose book source. If path is empty, preloaded books will be set as the book source.");
+        System.out.println("-books [y/n]\t\t\t\t\t\t\tPrint list of books in the library. Enter 'y' to show current book owners, else 'n'.");
+        System.out.println("-visitors [y/n]\t\t\t\t\t\t\tPrint list of library visitors. Enter 'y' to show books borrowed by a visitor, else 'n'.");
+        System.out.println("-overdue\t\t\t\t\t\t\t\tPrint list of visitors with overdue books");
+        System.out.println("-rent [visitor index] [book index]\t\tRent a book to a visitor.");
         System.out.println("-return [visitor index] [book index]\tLet a visitor return a book.");
-        System.out.println("-exit\tExit.");
+        System.out.println("-exit\t\t\t\t\t\t\t\t\tExit.");
     }
 }

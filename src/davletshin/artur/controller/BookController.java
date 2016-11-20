@@ -4,6 +4,7 @@ import davletshin.artur.exception.BookCannotBeBorrowedException;
 import davletshin.artur.exception.BookCannotBeReturnedException;
 import davletshin.artur.model.Book;
 import davletshin.artur.model.Visitor;
+import davletshin.artur.source.BookSourceI;
 
 import java.util.*;
 
@@ -11,7 +12,7 @@ import java.util.*;
  * Created by Artur on 11/11/16.
  */
 public class BookController implements BookControllerI {
-    private final List<Book> books;
+    private List<Book> books;
 
     private static class Singleton {
         private static final BookController INSTANCE = new BookController();
@@ -29,20 +30,24 @@ public class BookController implements BookControllerI {
         return books;
     }
 
+    public void setBooks(List<Book> books) {
+        this.books = books;
+    }
+
     public Date rentBook(Visitor visitor, Book book) throws BookCannotBeBorrowedException {
         if (visitor == null || book == null) {
-            throw new BookCannotBeBorrowedException("Invalid input");
+            throw new BookCannotBeBorrowedException("Invalid source.");
         }
         if (!books.contains(book)) {
-            throw new BookCannotBeBorrowedException("There is no such a book");
+            throw new BookCannotBeBorrowedException("There is no such a book.");
         }
         if (!VisitorController.getInstance().getVisitors().contains(visitor)) {
-            throw new BookCannotBeBorrowedException("There is no such a visitor");
+            throw new BookCannotBeBorrowedException("There is no such a visitor.");
         }
         if (!visitor.canBorrow()) {
             throw new BookCannotBeBorrowedException(
                     "Visitor " + visitor.getName()
-                    + " has exceeded the allowed number of borrowed books"
+                    + " has exceeded the allowed number of borrowed books."
             );
         }
         if (book.isBorrowed()) {
@@ -66,18 +71,18 @@ public class BookController implements BookControllerI {
 
     public void returnBook(Visitor visitor, Book book) throws BookCannotBeReturnedException {
         if (visitor == null || book == null) {
-            throw new BookCannotBeReturnedException("Invalid input");
+            throw new BookCannotBeReturnedException("Invalid source.");
         }
         if (!books.contains(book)) {
-            throw new BookCannotBeReturnedException("There is no such a book");
+            throw new BookCannotBeReturnedException("There is no such a book.");
         }
         if (!VisitorController.getInstance().getVisitors().contains(visitor)) {
-            throw new BookCannotBeReturnedException("There is no such a visitor");
+            throw new BookCannotBeReturnedException("There is no such a visitor.");
         }
         if (!book.isBorrowed()) {
             throw new BookCannotBeReturnedException(
                     book.getTitle() + " by " + book.getAuthor()
-                            + " is not borrowed currently"
+                            + " is not borrowed currently."
             );
         }
         if (!visitor.getBorrowedBooks().contains(book)) {
@@ -90,5 +95,9 @@ public class BookController implements BookControllerI {
         book.setBorrowedBy(null);
         book.setDueTo(null);
         book.setCheckedOutOn(null);
+    }
+
+    public void setSource(BookSourceI bookSource) {
+        books = bookSource.returnBooks();
     }
 }
